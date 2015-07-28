@@ -1,7 +1,13 @@
 #include "DirectX_Lib.h"
 
-DirectX_Lib::DirectX_Lib() :  g_pD3D(NULL), g_pd3dDevice(NULL), g_pTexture(NULL)
+DirectX_Lib::DirectX_Lib() :  g_pD3D(NULL), g_pd3dDevice(NULL), backGroundTexture(NULL)
 {
+}
+
+DirectX_Lib::DirectX_Lib(LPCWSTR windowName, int posX, int posY, int width, int height) :  g_pD3D(NULL), g_pd3dDevice(NULL), backGroundTexture(NULL)
+{
+	InitWin(windowName, posX, posY, width, height);
+	InitDX();
 }
 
 DirectX_Lib::~DirectX_Lib()
@@ -23,32 +29,26 @@ void DirectX_Lib::InitWin(void)
 		NULL, NULL, g_wc.hInstance, NULL );
 }
 
+void DirectX_Lib::InitWin(LPCWSTR windowName, int posX, int posY, int width, int height)
+{
+	// Register the window class
+	WNDCLASSEX g_wc = { sizeof(WNDCLASSEX), CS_CLASSDC, MsgProc, 0L, 0L,
+		GetModuleHandle(NULL), NULL, NULL, NULL, NULL,
+		_T("D3D Tutorial"), NULL };
+	RegisterClassEx( &g_wc );
+
+	// Create the application's window
+	g_hWnd = CreateWindow( _T("D3D Tutorial"), windowName,
+		WS_OVERLAPPEDWINDOW, posX, posY, width, height,
+		NULL, NULL, g_wc.hInstance, NULL );
+}
+
 void DirectX_Lib::InitDX(void)
 {
 	InitD3D(g_hWnd);
 	D3DXCreateSprite(g_pd3dDevice, &g_pSprite);
 }
 
-void DirectX_Lib::LoadData(void)
-{
-	D3DXCreateTextureFromFile(g_pd3dDevice, _T(RESOURCE_PATH), &g_pTexture);
-}
-
-void DirectX_Lib::Initilize(void)
-{
-	InitWin();
-	InitDX();
-	LoadData();
-
-	// Show the window
-	ShowWindow( g_hWnd, SW_SHOWDEFAULT );
-	UpdateWindow( g_hWnd );
-}
-
-//-----------------------------------------------------------------------------
-// Name: InitD3D()
-// Desc: Initializes Direct3D
-//-----------------------------------------------------------------------------
 HRESULT DirectX_Lib::InitD3D( HWND hWnd )
 {
 	g_pD3D = Direct3DCreate9( D3D_SDK_VERSION );
@@ -67,6 +67,28 @@ HRESULT DirectX_Lib::InitD3D( HWND hWnd )
 
     return S_OK;
 }
+
+void DirectX_Lib::LoadBackGroundData(void)
+{
+	D3DXCreateTextureFromFile(g_pd3dDevice, _T(BACKGROUND_TEXTURE_PATH), &backGroundTexture);
+}
+
+void DirectX_Lib::Initilize(void)
+{
+	InitWin();
+	InitDX();
+	LoadBackGroundData();
+
+	// Show the window
+	ShowWindow( g_hWnd, SW_SHOWDEFAULT );
+	UpdateWindow( g_hWnd );
+}
+
+//-----------------------------------------------------------------------------
+// Name: InitD3D()
+// Desc: Initializes Direct3D
+//-----------------------------------------------------------------------------
+
 
 //-----------------------------------------------------------------------------
 // Name: Cleanup()
@@ -115,7 +137,7 @@ VOID DirectX_Lib::Render()
     if( SUCCEEDED( g_pd3dDevice->BeginScene() ) )
     {
 		g_pSprite->Begin(D3DXSPRITE_ALPHABLEND);
-		g_pSprite->Draw(g_pTexture, &rcSrcRect, &vecCenter, &vecPosition, 0xffffffff);
+		g_pSprite->Draw(backGroundTexture, &rcSrcRect, &vecCenter, &vecPosition, 0xffffffff);
 		g_pSprite->End();
 
         // End the scene
